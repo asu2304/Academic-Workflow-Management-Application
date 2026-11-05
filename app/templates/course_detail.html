@@ -1,92 +1,98 @@
 {% extends "base.html" %}
-{% from "macros.html" import icon, student_badge, due, empty, person, ext, when %}
+{% from "macros.html" import icon, student_badge, due, empty, person, file_icon, when %}
 {% block title %}{{ course.title }}{% endblock %}
 {% block content %}
-<nav class="crumbs"><a href="/courses">Courses</a><span class="sep">/</span><span>{{ course.code }}</span></nav>
-<div class="page-head">
-  <div>
-    <span class="eyebrow">{{ course.code }}</span>
-    <h1>{{ course.title }}</h1>
-    <div class="meta"><span>Taught by {{ course.instructor.name }}</span><span>{{ course.enrollments|length }} student{{ 's' if course.enrollments|length != 1 }}</span><span>{{ course.assignments|length }} assignment{{ 's' if course.assignments|length != 1 }}</span></div>
-  </div>
-  <div class="row">
-  {% if owner %}
-    <button class="btn outline" data-open="material-dialog">Add material</button>
-    <a class="btn dark" href="/courses/{{ course.id }}/assignments/new">New assignment</a>
-  {% elif not user.is_instructor %}
-    {% if enrolled %}<form method="post" action="/courses/{{ course.id }}/unenroll" data-confirm="You'll lose access to this course's material and assignments. Your past submissions are kept." data-confirm-title="Leave {{ course.code }}?" data-confirm-ok="Leave course"><button class="btn outline">Leave course</button></form>
-    {% else %}<form method="post" action="/courses/{{ course.id }}/enroll"><button class="btn lg">Enroll in this course</button></form>{% endif %}
-  {% endif %}
+<div class="crumbs"><a href="/courses">Courses</a>{{ icon('chevron-right', 'sm') }}<span>{{ course.code }}</span></div>
+<div class="hero-banner" style="--h: {{ course.id|cover_hue }}">
+  <div class="row between">
+    <div>
+      <span class="code">{{ course.code }}</span>
+      <h1>{{ course.title }}</h1>
+      <div class="sub">
+        <span>{{ icon('user', 'sm') }}{{ course.instructor.name }}</span>
+        <span>{{ icon('users', 'sm') }}{{ course.enrollments|length }} student{{ 's' if course.enrollments|length != 1 }}</span>
+        <span>{{ icon('clipboard', 'sm') }}{{ course.assignments|length }} assignment{{ 's' if course.assignments|length != 1 }}</span>
+      </div>
+    </div>
+    <div class="row">
+    {% if owner %}
+      <a class="btn white" href="/courses/{{ course.id }}/assignments/new">{{ icon('plus', 'sm') }}New assignment</a>
+      <button class="btn ghost" data-open="material-dialog">{{ icon('upload', 'sm') }}Add material</button>
+    {% elif not user.is_instructor %}
+      {% if enrolled %}<form method="post" action="/courses/{{ course.id }}/unenroll" data-confirm="You'll lose access to this course's material and assignments. Your past submissions are kept." data-confirm-title="Leave {{ course.code }}?" data-confirm-ok="Leave course"><button class="btn ghost">{{ icon('logout', 'sm') }}Leave course</button></form>
+      {% else %}<form method="post" action="/courses/{{ course.id }}/enroll"><button class="btn white lg">{{ icon('plus', 'sm') }}Enroll in this course</button></form>{% endif %}
+    {% endif %}
+    </div>
   </div>
 </div>
 
 {% if owner or enrolled %}
 <div data-tabs>
   <div class="tabs" role="tablist">
-    <button class="tab" data-tab="assignments" role="tab">Assignments<span class="n">{{ course.assignments|length }}</span></button>
-    <button class="tab" data-tab="materials" role="tab">Study material<span class="n">{{ course.materials|length }}</span></button>
-    <button class="tab" data-tab="about" role="tab">About</button>
-    {% if owner %}<button class="tab" data-tab="students" role="tab">Students<span class="n">{{ course.enrollments|length }}</span></button>{% endif %}
+    <button class="tab" data-tab="assignments" role="tab">{{ icon('clipboard', 'sm') }}Assignments<span class="n">{{ course.assignments|length }}</span></button>
+    <button class="tab" data-tab="materials" role="tab">{{ icon('layers', 'sm') }}Study material<span class="n">{{ course.materials|length }}</span></button>
+    <button class="tab" data-tab="about" role="tab">{{ icon('info', 'sm') }}About</button>
+    {% if owner %}<button class="tab" data-tab="students" role="tab">{{ icon('users', 'sm') }}Students<span class="n">{{ course.enrollments|length }}</span></button>{% endif %}
   </div>
 
   <section data-panel="assignments">
-    <div class="panel">
+    <div class="card">
     {% if course.assignments %}
       <ul class="list">
       {% for a in course.assignments %}
         <li>
-          <div class="grow"><a class="title" href="/assignments/{{ a.id }}">{{ a.title }}</a>
-            <div class="desc">{{ due(a) }}<span>{{ a.max_marks|num }} marks</span>{% if owner %}<span>{{ a.submissions|length }} of {{ course.enrollments|length }} submitted</span>{% endif %}</div></div>
+          <div class="file-ico tone-primary">{{ icon('clipboard') }}</div>
+          <div class="grow"><a class="title" href="/assignments/{{ a.id }}" style="color:var(--text)">{{ a.title }}</a>
+            <div class="desc row" style="gap:14px">{{ due(a) }}<span>{{ a.max_marks|num }} marks</span>{% if owner %}<span>{{ a.submissions|length }} / {{ course.enrollments|length }} submitted</span>{% endif %}</div></div>
           {% if owner %}
             {% set review = a.submissions|selectattr('status', 'equalto', 'evaluated')|list|length %}
-            {% if review %}<span class="tag s-evaluated">{{ review }} to review</span>{% endif %}
-            <a class="btn outline sm" href="/assignments/{{ a.id }}">Manage</a>
+            {% if review %}<span class="badge s-evaluated"><span class="dot"></span>{{ review }} to review</span>{% endif %}
+            <a class="btn secondary sm" href="/assignments/{{ a.id }}">Manage</a>
           {% else %}
             {% set s = my_subs.get(a.id) %}{{ student_badge(s) }}
-            <a class="btn {{ 'outline' if s else '' }} sm" href="/assignments/{{ a.id }}">{{ 'Open' if s else 'Submit' }}</a>
+            <a class="btn {{ 'secondary' if s else '' }} sm" href="/assignments/{{ a.id }}">{{ 'Open' if s else 'Submit' }}</a>
           {% endif %}
         </li>
       {% endfor %}
       </ul>
     {% else %}
-      {% call empty('No assignments yet', 'Create an assignment and enrolled students can submit right away.' if owner else 'Your instructor has not published any assignments yet.') %}{% if owner %}<a class="btn" href="/courses/{{ course.id }}/assignments/new">New assignment</a>{% endif %}{% endcall %}
+      {% call empty('clipboard', 'No assignments yet', 'Create an assignment and enrolled students can submit right away.' if owner else 'Your instructor has not published any assignments yet.') %}{% if owner %}<a class="btn" href="/courses/{{ course.id }}/assignments/new">{{ icon('plus', 'sm') }}New assignment</a>{% endif %}{% endcall %}
     {% endif %}
     </div>
   </section>
 
   <section data-panel="materials">
-    <div class="panel">
+    <div class="card">
     {% if course.materials %}
       <ul class="list">
       {% for m in course.materials %}
         <li>
-          {% if m.file_path %}{{ ext(m.original_name) }}{% else %}<span class="ext link">LINK</span>{% endif %}
+          {% if m.file_path %}{{ file_icon(m.original_name) }}{% else %}<div class="file-ico tone-primary">{{ icon('link') }}</div>{% endif %}
           <div class="grow"><div class="title">{{ m.title }}</div>
-            <div class="desc">{% if m.description %}<span>{{ m.description }}</span>{% endif %}<span>Added {{ when(m.created_at, 'rel') }}</span></div></div>
-          {% if m.file_path %}<a class="btn outline sm" href="/materials/{{ m.id }}/download" title="{{ m.original_name }}">{{ icon('download', 'sm') }}Download</a>{% endif %}
-          {% if m.link_url %}<a class="btn outline sm" href="{{ m.link_url }}" target="_blank" rel="noopener noreferrer">Open link {{ icon('external', 'sm') }}</a>{% endif %}
-          {% if owner %}<form method="post" action="/materials/{{ m.id }}/delete" data-confirm="Students will no longer see “{{ m.title }}”." data-confirm-title="Remove material?" data-confirm-ok="Remove"><button class="btn ghost sm">Remove</button></form>{% endif %}
+            <div class="desc">{% if m.description %}{{ m.description }} · {% endif %}Added {{ when(m.created_at, 'rel') }}</div></div>
+          {% if m.file_path %}<a class="btn secondary sm" href="/materials/{{ m.id }}/download">{{ icon('download', 'sm') }}{{ m.original_name|truncate(24) }}</a>{% endif %}
+          {% if m.link_url %}<a class="btn secondary sm" href="{{ m.link_url }}" target="_blank" rel="noopener noreferrer">{{ icon('external', 'sm') }}Open link</a>{% endif %}
+          {% if owner %}<form method="post" action="/materials/{{ m.id }}/delete" data-confirm="Students will no longer see “{{ m.title }}”." data-confirm-title="Remove material?" data-confirm-ok="Remove"><button class="btn danger sm icon-only" aria-label="Remove">{{ icon('trash', 'sm') }}</button></form>{% endif %}
         </li>
       {% endfor %}
       </ul>
-      <div class="xs muted" style="padding:0 28px 16px">{% for m in course.materials %}{% if m.file_path %}{{ m.original_name }}{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}</div>
     {% else %}
-      {% call empty('No study material yet', 'Upload notes, slides or worksheets, or link to readings and videos.' if owner else 'Your instructor has not shared any material yet.') %}{% if owner %}<button class="btn" data-open="material-dialog">Add material</button>{% endif %}{% endcall %}
+      {% call empty('layers', 'No study material yet', 'Upload notes, slides or worksheets, or link to readings and videos.' if owner else 'Your instructor has not shared any material yet.') %}{% if owner %}<button class="btn" data-open="material-dialog">{{ icon('upload', 'sm') }}Add material</button>{% endif %}{% endcall %}
     {% endif %}
     </div>
   </section>
 
   <section data-panel="about">
-    <div class="panel panel-pad">{% if course.description %}<p class="pre">{{ course.description }}</p>{% else %}<p class="muted">No description.</p>{% endif %}</div>
+    <div class="card card-pad">{% if course.description %}<p class="pre">{{ course.description }}</p>{% else %}<p class="muted">No description.</p>{% endif %}</div>
   </section>
 
   {% if owner %}
   <section data-panel="students">
-    <div class="panel">
+    <div class="card">
     {% if course.enrollments %}
       <ul class="list">{% for e in course.enrollments %}<li>{{ person(e.student) }}<span class="spacer"></span><span class="small muted">Joined {{ when(e.created_at, 'rel') }}</span></li>{% endfor %}</ul>
     {% else %}
-      {% call empty('No students yet', 'Students enroll themselves from the course catalog.') %}{% endcall %}
+      {% call empty('users', 'No students yet', 'Students enroll themselves from the course catalog.') %}{% endcall %}
     {% endif %}
     </div>
   </section>
@@ -96,22 +102,27 @@
 {% if owner %}
 <dialog class="modal" id="material-dialog">
   <form method="post" action="/courses/{{ course.id }}/materials" enctype="multipart/form-data">
-    <div class="modal-head"><h2>Add study material</h2><button type="button" class="btn ghost sm icon-only" data-close aria-label="Close">{{ icon('x', 'sm') }}</button></div>
+    <div class="modal-head"><h2>Add study material</h2><button type="button" class="btn quiet sm icon-only" data-close aria-label="Close">{{ icon('x', 'sm') }}</button></div>
     <div class="modal-body stack">
       <div class="field"><label for="m-title">Title</label><input id="m-title" name="title" required maxlength="200" placeholder="Week 1 notes"></div>
-      <div class="field"><label for="m-desc">Description <span class="muted">(optional)</span></label><textarea id="m-desc" name="description" rows="2" style="min-height:64px"></textarea></div>
-      <label class="dropzone"><input type="file" name="file"><div class="dz-title"><u>Choose a file</u> or drag it here</div><div class="dz-hint">PDF, slides, images or documents, up to 20 MB</div></label>
-      <div class="field"><label for="m-link">Or add a link</label><input id="m-link" type="url" name="link_url" placeholder="https://"></div>
+      <div class="field"><label for="m-desc">Description <span class="muted">(optional)</span></label><textarea id="m-desc" name="description" rows="2" style="min-height:60px"></textarea></div>
+      <label class="dropzone">
+        <input type="file" name="file">
+        <div class="dz-icon">{{ icon('upload') }}</div>
+        <div class="dz-title"><em>Choose a file</em> or drag it here</div>
+        <div class="dz-hint">PDF, slides, images, documents — up to 20 MB</div>
+      </label>
+      <div class="field"><label for="m-link">…or a link</label><div class="input-icon">{{ icon('link', 'sm') }}<input id="m-link" type="url" name="link_url" placeholder="https://"></div></div>
     </div>
-    <div class="modal-foot"><button type="button" class="btn outline" data-close>Cancel</button><button class="btn">Add material</button></div>
+    <div class="modal-foot"><button type="button" class="btn secondary" data-close>Cancel</button><button class="btn">{{ icon('plus', 'sm') }}Add material</button></div>
   </form>
 </dialog>
 {% endif %}
 {% else %}
-<div class="panel sage">
-  {% call empty('Enroll to see this course', 'Enroll to see this course’s material and assignments.') %}
-    {% if course.description %}<p class="pre" style="text-align:left;max-width:560px">{{ course.description }}</p>{% endif %}
-    {% if not user.is_instructor %}<form method="post" action="/courses/{{ course.id }}/enroll"><button class="btn">Enroll</button></form>{% endif %}
+<div class="card">
+  {% call empty('book', 'Enroll to see this course', 'Enroll to see this course’s material and assignments.') %}
+    {% if course.description %}<p class="pre" style="text-align:left;max-width:560px;margin:0 auto 18px;color:var(--text-2)">{{ course.description }}</p>{% endif %}
+    {% if not user.is_instructor %}<form method="post" action="/courses/{{ course.id }}/enroll"><button class="btn">{{ icon('plus', 'sm') }}Enroll</button></form>{% endif %}
   {% endcall %}
 </div>
 {% endif %}

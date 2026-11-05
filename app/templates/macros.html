@@ -2,17 +2,17 @@
 
 {% macro status_badge(status) -%}
 {% set m = {"submitted": "Submitted", "evaluating": "Grading", "evaluated": "Needs review", "approved": "Approved", "emailed": "Results sent", "failed": "Failed"} %}
-<span class="tag s-{{ status }}">{{ m[status] }}</span>
+<span class="badge s-{{ status }}"><span class="dot"></span>{{ m[status] }}</span>
 {%- endmacro %}
 
 {% macro student_badge(sub) -%}
-{% if not sub %}<span class="tag">Not submitted</span>
-{% elif sub.visible_to_student %}<span class="tag s-emailed">Graded</span>
-{% elif sub.status in ['evaluating', 'evaluated'] %}<span class="tag s-evaluating">Being graded</span>
-{% else %}<span class="tag s-submitted">Submitted</span>{% endif %}
+{% if not sub %}<span class="badge s-none">Not submitted</span>
+{% elif sub.visible_to_student %}<span class="badge s-emailed">{{ icon('check', 'sm') }}Graded</span>
+{% elif sub.status in ['evaluating', 'evaluated'] %}<span class="badge s-evaluating"><span class="dot"></span>Being graded</span>
+{% else %}<span class="badge s-submitted"><span class="dot"></span>Submitted</span>{% endif %}
 {%- endmacro %}
 
-{% macro avatar(name, cls="") -%}<span class="avatar {{ cls }}" aria-hidden="true">{{ name|initials }}</span>{%- endmacro %}
+{% macro avatar(name, cls="") -%}<span class="avatar {{ cls }}" style="--h: {{ name|hue }}" aria-hidden="true">{{ name|initials }}</span>{%- endmacro %}
 
 {% macro person(u, cls="") -%}
 <div class="person">{{ avatar(u.name, cls) }}<div class="who"><div class="name ellipsis">{{ u.name }}</div><div class="email ellipsis">{{ u.email }}</div></div></div>
@@ -20,34 +20,22 @@
 
 {% macro when(dt, fmt="abs") -%}{% if dt %}<time datetime="{{ dt|iso }}" data-format="{{ fmt }}">{{ dt.strftime('%d %b %Y, %H:%M') }} UTC</time>{% endif %}{%- endmacro %}
 
-{% macro due(a) -%}{% if a.due_at %}<span>{{ when(a.due_at, 'due') }}</span>{% else %}<span class="muted">No due date</span>{% endif %}{%- endmacro %}
-
-{% macro empty(title, text="") -%}
-<div class="empty"><h3>{{ title }}</h3>{% if text %}<p>{{ text }}</p>{% endif %}{{ caller() if caller }}</div>
+{% macro due(a) -%}
+{% if a.due_at %}<span class="due">{{ icon('calendar', 'sm') }} {{ when(a.due_at, 'due') }}</span>{% else %}<span class="muted">No due date</span>{% endif %}
 {%- endmacro %}
 
-{% macro ext(name) -%}
-{% set e = (name or '').rsplit('.', 1)[-1]|lower %}
-{% if e == 'pdf' %}<span class="ext pdf">PDF</span>
-{% elif e in ['png','jpg','jpeg','gif','webp','heic'] %}<span class="ext img">{{ e|upper }}</span>
-{% else %}<span class="ext">{{ (e or 'FILE')[:4]|upper }}</span>{% endif %}
+{% macro empty(ic, title, text="") -%}
+<div class="empty"><div class="ico">{{ icon(ic, 'lg') }}</div><h3>{{ title }}</h3>{% if text %}<p>{{ text }}</p>{% endif %}{{ caller() if caller }}</div>
 {%- endmacro %}
 
-{% macro score(value, total) -%}<span class="score">{{ value|num }} <span class="of">/ {{ total|num }}</span></span>{%- endmacro %}
+{% macro file_icon(name) -%}
+{% set ext = (name or '').rsplit('.', 1)[-1]|lower %}
+{% if ext == 'pdf' %}<div class="file-ico tone-red">{{ icon('file-text') }}</div>
+{% elif ext in ['png','jpg','jpeg','gif','webp','heic'] %}<div class="file-ico tone-blue">{{ icon('image') }}</div>
+{% else %}<div class="file-ico tone-gray">{{ icon('file') }}</div>{% endif %}
+{%- endmacro %}
 
-{% macro course_tile(c, alt=False, enrolled=None, show_enroll=False) -%}
-<article class="tile {{ 'alt' if alt }}" data-text="{{ c.code }} {{ c.title }} {{ c.instructor.name }} {{ c.description }}">
-  <div class="code">{{ c.code }}</div>
-  <h3><a href="/courses/{{ c.id }}">{{ c.title }}</a></h3>
-  <div class="small muted">{{ c.instructor.name }}</div>
-  {% if c.description %}<p class="desc">{{ c.description|truncate(120) }}</p>{% endif %}
-  <div class="foot">
-    <span class="facts">{{ c.enrollments|length }} student{{ 's' if c.enrollments|length != 1 }} · {{ c.assignments|length }} assignment{{ 's' if c.assignments|length != 1 }}</span>
-    {% if show_enroll and c.id not in enrolled %}
-      <form method="post" action="/courses/{{ c.id }}/enroll"><button class="btn sm">Enroll</button></form>
-    {% else %}
-      <a class="more-link sm" href="/courses/{{ c.id }}">{{ 'Open course' if show_enroll else 'View course' }} {{ icon('chevron-right', 'sm') }}</a>
-    {% endif %}
-  </div>
-</article>
+{% macro score_ring(score, total, cls="") -%}
+{% set p = pct(score, total) %}
+<div class="ring {{ cls }}" style="--p: {{ p }}; --c: {{ 'var(--green)' if p >= 75 else ('var(--amber)' if p >= 40 else 'var(--red)') }}"><div><div><div class="big">{{ score|num }}</div><div class="of">of {{ total|num }}</div></div></div></div>
 {%- endmacro %}

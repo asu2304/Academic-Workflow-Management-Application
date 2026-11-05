@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "macros.html" import icon, status_badge, person, when, due, empty, score %}
+{% from "macros.html" import icon, status_badge, person, when, due, empty %}
 {% block title %}{{ a.title }}{% endblock %}
 {% block content %}
 {% set total = a.submissions|length %}
@@ -9,45 +9,60 @@
 {% set n_done = counts.get('approved', 0) + counts.get('emailed', 0) %}
 <div {% if busy or key_pending %}data-poll="/assignments/{{ a.id }}/status" data-poll-key="{{ poll_key }}"{% endif %}></div>
 
-<nav class="crumbs"><a href="/courses">Courses</a><span class="sep">/</span><a href="/courses/{{ a.course_id }}">{{ a.course.code }}</a><span class="sep">/</span><span>{{ a.title }}</span></nav>
+<div class="crumbs"><a href="/courses">Courses</a>{{ icon('chevron-right', 'sm') }}<a href="/courses/{{ a.course_id }}">{{ a.course.code }}</a>{{ icon('chevron-right', 'sm') }}<span>{{ a.title }}</span></div>
 <div class="page-head">
-  <div><span class="eyebrow">Assignment</span><h1>{{ a.title }}</h1>
-    <div class="meta"><span>{{ a.max_marks|num }} marks</span>{{ due(a) }}{% if a.skip_review %}<span class="tag">Results sent automatically</span>{% endif %}</div></div>
+  <div><h1>{{ a.title }}</h1>
+    <div class="sub"><span>{{ icon('chart', 'sm') }}{{ a.max_marks|num }} marks</span>{{ due(a) }}<span>{{ icon('users', 'sm') }}{{ total }} of {{ enrolled_count }} submitted</span>
+      {% if a.skip_review %}<span class="badge s-submitted">{{ icon('send', 'sm') }}Auto-send results</span>{% endif %}</div></div>
   <div class="row">
-    <form method="post" action="/assignments/{{ a.id }}/approve-all" data-confirm="{{ n_review }} result{{ 's' if n_review != 1 }} will be marked final and emailed to the students." data-confirm-title="Approve and email all?" data-confirm-ok="Approve and email">
-      <button class="btn outline" {% if not n_review %}disabled{% endif %}>Approve &amp; email all{% if n_review %} ({{ n_review }}){% endif %}</button></form>
+    <form method="post" action="/assignments/{{ a.id }}/approve-all" data-confirm="{{ n_review }} result(s) will be marked final and emailed to the students." data-confirm-title="Approve and email all?" data-confirm-ok="Approve & email">
+      <button class="btn success" {% if not n_review %}disabled{% endif %}>{{ icon('send', 'sm') }}Approve &amp; email all{% if n_review %} ({{ n_review }}){% endif %}</button></form>
     <form method="post" action="/assignments/{{ a.id }}/evaluate">
-      <button class="btn" {% if not n_wait %}disabled{% endif %}>{% if n_wait %}Evaluate {{ n_wait }} pending{% else %}Nothing to evaluate{% endif %}</button></form>
+      <button class="btn" {% if not n_wait %}disabled{% endif %}>{{ icon('sparkles', 'sm') }}{% if n_wait %}Evaluate {{ n_wait }} pending{% else %}Nothing to evaluate{% endif %}</button></form>
   </div>
 </div>
 
 {% if busy %}
-<div class="notice info" style="margin-bottom:24px"><span class="working"></span><span><b>Grading {{ n_grading }} submission{{ 's' if n_grading != 1 }}.</b> {% if not a.rubric %}Writing an answer key first. {% endif %}This page updates when it's done.</span></div>
+<div class="alert info" style="margin-bottom:16px"><span class="badge s-evaluating" style="background:transparent;padding:0"><span class="dot"></span></span><span class="txt"><b>The agent is grading {{ n_grading }} submission{{ 's' if n_grading != 1 }}.</b> {% if not a.rubric %}It's writing an answer key first. {% endif %}This page updates by itself when grading finishes.</span></div>
 {% endif %}
 
-<div class="figures">
-  <div><div class="num">{{ total }}<span class="light" style="font-size:24px;color:var(--muted)"> / {{ enrolled_count }}</span></div><div class="lbl">Submitted</div></div>
-  <div><div class="num">{{ n_wait + n_grading }}</div><div class="lbl">Not graded yet</div></div>
-  <div><div class="num">{{ n_review }}{% if n_review %}<span class="attn"></span>{% endif %}</div><div class="lbl">Need your review</div></div>
-  <div><div class="num">{{ n_done }}</div><div class="lbl">Results sent</div></div>
+<div class="card card-pad">
+  <div class="row between" style="margin-bottom:12px"><h2>Grading progress</h2><span class="small muted">{{ n_done }} of {{ total }} sent to students</span></div>
+  {% if total %}
+  <div class="pipeline" role="img" aria-label="{{ n_done }} sent, {{ n_review }} need review, {{ n_grading }} grading, {{ n_wait }} waiting">
+    <span class="p-done" style="width: {{ 100 * n_done / total }}%"></span>
+    <span class="p-evaluated" style="width: {{ 100 * n_review / total }}%"></span>
+    <span class="p-evaluating" style="width: {{ 100 * n_grading / total }}%"></span>
+    <span class="p-submitted" style="width: {{ 100 * counts.get('submitted', 0) / total }}%"></span>
+    <span class="p-failed" style="width: {{ 100 * counts.get('failed', 0) / total }}%"></span>
+  </div>
+  {% else %}<div class="pipeline"></div>{% endif %}
+  <div class="legend">
+    <span><i style="background:var(--green)"></i>Sent {{ n_done }}</span>
+    <span><i style="background:var(--amber)"></i>Needs review {{ n_review }}</span>
+    <span><i style="background:var(--blue)"></i>Grading {{ n_grading }}</span>
+    <span><i style="background:var(--muted)"></i>Waiting {{ counts.get('submitted', 0) }}</span>
+    {% if counts.get('failed') %}<span><i style="background:var(--red)"></i>Failed {{ counts.get('failed') }}</span>{% endif %}
+    <span class="muted"><i style="background:var(--surface-2)"></i>Not submitted {{ enrolled_count - total if enrolled_count > total else 0 }}</span>
+  </div>
 </div>
 
 <div data-tabs class="section">
   <div class="tabs" role="tablist">
-    <button class="tab" data-tab="submissions" role="tab">Submissions<span class="n">{{ total }}</span></button>
-    <button class="tab" data-tab="questions" role="tab">Questions</button>
-    <button class="tab" data-tab="rubric" role="tab">Rubric{% if a.rubric_source == 'ai' %}<span class="n">draft</span>{% elif not a.rubric %}<span class="n">none</span>{% endif %}</button>
+    <button class="tab" data-tab="submissions" role="tab">{{ icon('inbox', 'sm') }}Submissions<span class="n">{{ total }}</span></button>
+    <button class="tab" data-tab="questions" role="tab">{{ icon('file-text', 'sm') }}Questions</button>
+    <button class="tab" data-tab="rubric" role="tab">{{ icon('check-circle', 'sm') }}Rubric{% if a.rubric_source == 'ai' %}<span class="badge ai" style="height:20px">{{ icon('sparkles', 'sm') }}AI</span>{% elif not a.rubric %}<span class="n">none</span>{% endif %}</button>
   </div>
 
   <section data-panel="submissions">
-    <div class="panel">
+    <div class="card">
     {% if total %}
-      <div class="panel-head">
-        <div class="filters" data-filter="#subs tbody tr">
-          <button class="filter active" data-value="all">All<span class="n">{{ total }}</span></button>
-          <button class="filter" data-value="evaluated">Needs review<span class="n">{{ n_review }}</span></button>
-          <button class="filter" data-value="submitted,failed,evaluating">Not graded<span class="n">{{ n_wait + n_grading }}</span></button>
-          <button class="filter" data-value="approved,emailed">Sent<span class="n">{{ n_done }}</span></button>
+      <div class="card-head">
+        <div class="chips" data-filter="#subs tbody tr">
+          <button class="chip active" data-value="all">All <span class="n">{{ total }}</span></button>
+          <button class="chip" data-value="evaluated">Needs review <span class="n">{{ n_review }}</span></button>
+          <button class="chip" data-value="submitted,failed,evaluating">Not graded <span class="n">{{ n_wait + n_grading }}</span></button>
+          <button class="chip" data-value="approved,emailed">Sent <span class="n">{{ n_done }}</span></button>
         </div>
       </div>
       <div class="table-wrap"><table class="table" id="subs">
@@ -56,41 +71,42 @@
         {% for s in a.submissions %}
           <tr data-status="{{ s.status }}" data-href="/submissions/{{ s.id }}">
             <td>{{ person(s.student, 'sm') }}</td>
-            <td class="small">{{ when(s.submitted_at, 'short') }}{% if a.due_at and s.submitted_at > a.due_at %} <span class="tag late">Late</span>{% endif %}</td>
-            <td>{{ status_badge(s.status) }}{% if s.error %}<div class="xs" style="color:var(--red-ink);margin-top:6px;max-width:300px">{{ s.error|truncate(110) }}</div>{% endif %}</td>
-            <td>{% if s.total_score is not none %}{{ score(s.total_score, a.max_marks) }}{% else %}<span class="muted">—</span>{% endif %}</td>
-            <td class="right"><a class="btn {{ '' if s.status == 'evaluated' else 'outline' }} sm" href="/submissions/{{ s.id }}">{{ 'Review' if s.status == 'evaluated' else 'Open' }}</a></td>
+            <td class="small">{{ when(s.submitted_at, 'short') }}{% if a.due_at and s.submitted_at > a.due_at %} <span class="badge late">Late</span>{% endif %}</td>
+            <td>{{ status_badge(s.status) }}{% if s.error %}<div class="xs" style="color:var(--red);margin-top:4px;max-width:280px">{{ s.error|truncate(110) }}</div>{% endif %}</td>
+            <td>{% if s.total_score is not none %}<div class="strong">{{ s.total_score|num }} <span class="muted">/ {{ a.max_marks|num }}</span></div>
+              {% set p = pct(s.total_score, a.max_marks) %}<div class="bar {{ 'good' if p >= 75 else ('mid' if p >= 40 else 'low') }}" style="width:90px;margin-top:5px"><span style="width:{{ p }}%"></span></div>{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td class="right"><a class="btn {{ '' if s.status == 'evaluated' else 'secondary' }} sm" href="/submissions/{{ s.id }}">{{ 'Review' if s.status == 'evaluated' else 'Open' }}</a></td>
           </tr>
         {% endfor %}
         </tbody>
       </table></div>
     {% else %}
-      {% call empty('No submissions yet', "When students submit, their work shows up here. Then use Evaluate to grade everything at once.") %}{% endcall %}
+      {% call empty('inbox', 'No submissions yet', 'When students submit, their work shows up here. Then click Evaluate to grade everything at once.') %}{% endcall %}
     {% endif %}
     </div>
   </section>
 
   <section data-panel="questions">
-    <div class="panel panel-pad stack">
+    <div class="card card-pad stack">
       {% if a.instructions %}<div class="doc">{{ a.instructions }}</div>{% endif %}
-      {% if a.question_file %}<div><a class="attach" href="/assignments/{{ a.id }}/question-file"><span class="ext pdf">{{ (a.question_file_name or '').rsplit('.', 1)[-1][:4]|upper }}</span><span><b>{{ a.question_file_name }}</b><div class="xs muted">Question paper</div></span></a></div>{% endif %}
+      {% if a.question_file %}<div><a class="attach" href="/assignments/{{ a.id }}/question-file">{{ icon('file-text') }}<span><b>{{ a.question_file_name }}</b><div class="xs muted">Question paper</div></span>{{ icon('download', 'sm') }}</a></div>{% endif %}
     </div>
   </section>
 
   <section data-panel="rubric">
-    <div class="panel">
-      <div class="panel-head">
-        <h3>Rubric and answer key</h3>
-        <form method="post" action="/assignments/{{ a.id }}/answer-key" {% if a.rubric %}data-confirm="The questions will be solved again and the current rubric replaced." data-confirm-title="Regenerate the answer key?" data-confirm-ok="Regenerate"{% endif %}>
-          <button class="btn outline sm">{{ 'Regenerate answer key' if a.rubric else 'Write an answer key for me' }}</button></form>
+    <div class="card">
+      <div class="card-head">
+        <h2>{{ icon('check-circle') }}Rubric / answer key</h2>
+        <form method="post" action="/assignments/{{ a.id }}/answer-key" {% if a.rubric %}data-confirm="The agent will solve the questions again and replace the current rubric." data-confirm-title="Regenerate answer key?" data-confirm-ok="Regenerate"{% endif %}>
+          <button class="btn secondary sm">{{ icon('sparkles', 'sm') }}{{ 'Regenerate with agent' if a.rubric else 'Generate with agent' }}</button></form>
       </div>
-      <form method="post" action="/assignments/{{ a.id }}/rubric" class="panel-body stack">
-        {% if key_pending %}<div class="notice info"><span class="working"></span><span>Solving the questions and writing an answer key…</span></div>{% endif %}
-        {% if a.rubric_source == 'ai' %}<div class="notice warn"><span><b>This answer key was generated automatically.</b> Check it before relying on the grades. Changes apply to the next evaluation or re-evaluation.</span></div>{% endif %}
-        <textarea name="rubric" rows="14" placeholder="Empty: an answer key is written automatically before grading.">{{ a.rubric or '' }}</textarea>
+      <form method="post" action="/assignments/{{ a.id }}/rubric" class="card-body stack">
+        {% if key_pending %}<div class="alert info"><span class="badge s-evaluating" style="background:transparent;padding:0"><span class="dot"></span></span><span class="txt">The agent is solving the assignment and writing an answer key…</span></div>{% endif %}
+        {% if a.rubric_source == 'ai' %}<div class="alert warn">{{ icon('sparkles', 'sm') }}<span class="txt"><b>Written by the agent.</b> Check it before relying on the grades — edits apply to the next evaluation or re-evaluation.</span></div>{% endif %}
+        <textarea name="rubric" rows="14" placeholder="Empty: the agent writes an answer key automatically before grading.">{{ a.rubric or '' }}</textarea>
         <label class="switch"><input type="checkbox" name="skip_review" value="1" {% if a.skip_review %}checked{% endif %}><span class="track"></span>
           <span class="txt"><b>Send results without my review</b><span>Email results as soon as grading finishes.</span></span></label>
-        <div class="row" style="justify-content:flex-end"><button class="btn dark">Save rubric and settings</button></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn">{{ icon('check', 'sm') }}Save rubric &amp; settings</button></div>
       </form>
     </div>
   </section>

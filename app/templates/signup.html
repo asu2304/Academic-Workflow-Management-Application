@@ -3,25 +3,28 @@
 {% block title %}Sign up{% endblock %}
 {% block toasts %}{% endblock %}
 {% block body %}
-<main class="auth-page">
-  <div class="auth-card">
-    <h1>Create an account</h1>
-    <p class="lead">Instructors run courses and grade. Students enroll and submit.</p>
-    {% for f in flashes %}<div class="notice {{ f.kind }}" style="margin-bottom:20px">{{ f.message }}</div>{% endfor %}
-    <form method="post" action="/signup" class="stack">
-      <div class="field"><span class="label">I am a</span>
-        <div class="segmented" role="radiogroup">
-          <label><input type="radio" name="role" value="student" checked><span>Student</span></label>
-          <label><input type="radio" name="role" value="instructor"><span>Instructor</span></label>
-        </div></div>
-      <div class="field"><label for="name">Full name</label><input id="name" name="name" required maxlength="120" autocomplete="name"></div>
-      <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autocomplete="email" placeholder="you@school.edu"></div>
-      <div class="field"><label for="pw">Password</label>
-        <div class="pw"><input id="pw" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
-          <button type="button" class="btn ghost sm icon-only" data-reveal="pw" aria-label="Show password">{{ icon('eye', 'sm') }}</button></div></div>
-      <button class="btn lg block">Create account</button>
-    </form>
-    <p class="alt">Already have an account? <a href="/login">Log in</a></p>
-  </div>
-</main>
+<div class="auth">
+  {% include "_auth_side.html" %}
+  <main class="auth-main">
+    <div class="auth-card">
+      <h1>Create your account</h1>
+      <p class="lead">It takes less than a minute.</p>
+      {% for f in flashes %}<div class="alert {{ f.kind }} auth-flash">{{ icon('alert', 'sm') }}<span class="txt">{{ f.message }}</span></div>{% endfor %}
+      <form method="post" action="/signup" class="stack">
+        <div class="field"><span class="label">I'm joining as</span>
+          <div class="choice-grid">
+            <label class="choice"><input type="radio" name="role" value="student" checked><span class="box">{{ icon('cap', 'lg') }}<b>Student</b><span>Enroll in courses and submit work</span></span></label>
+            <label class="choice"><input type="radio" name="role" value="instructor"><span class="box">{{ icon('users', 'lg') }}<b>Instructor</b><span>Run courses and grade with AI</span></span></label>
+          </div></div>
+        <div class="field"><label for="name">Full name</label><div class="input-icon">{{ icon('user', 'sm') }}<input id="name" name="name" required maxlength="120" autocomplete="name" placeholder="Priya Verma"></div></div>
+        <div class="field"><label for="email">Email</label><div class="input-icon">{{ icon('mail', 'sm') }}<input id="email" type="email" name="email" required autocomplete="email" placeholder="you@school.edu"></div></div>
+        <div class="field"><label for="pw">Password</label>
+          <div class="input-icon" style="position:relative">{{ icon('shield', 'sm') }}<input id="pw" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+            <button type="button" class="btn quiet sm icon-only" data-reveal="pw" aria-label="Show password" style="position:absolute;right:4px;top:4px">{{ icon('eye', 'sm') }}</button></div></div>
+        <button class="btn lg block">Create account</button>
+      </form>
+      <p class="alt">Already have an account? <a href="/login">Log in</a></p>
+    </div>
+  </main>
+</div>
 {% endblock %}

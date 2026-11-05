@@ -1,6 +1,6 @@
 {# expects: c, and optional `enrolled` set, `show_enroll` #}
 <div class="card course-card hoverable" data-text="{{ c.code }} {{ c.title }} {{ c.instructor.name }} {{ c.description }}">
-  <a href="/courses/{{ c.id }}" class="cover" style="--h: {{ c.id|hue }}"><span class="code">{{ c.code }}</span></a>
+  <a href="/courses/{{ c.id }}" class="cover" style="--h: {{ c.id|cover_hue }}"><span class="code">{{ c.code }}</span></a>
   <div class="body">
     <h3><a href="/courses/{{ c.id }}" style="color:inherit">{{ c.title }}</a></h3>
     <div class="small muted">{{ c.instructor.name }}</div>

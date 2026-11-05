@@ -41,6 +41,11 @@ def _hue(value) -> int:
     return zlib.crc32(str(value).encode()) % 360
 
 
+def _cover_hue(value) -> int:
+    """Course colours stay in the theme's green-teal family (hue 95-185)."""
+    return 95 + zlib.crc32(str(value).encode()) % 90
+
+
 def _iso(dt: Optional[datetime]) -> str:
     return dt.replace(tzinfo=timezone.utc).isoformat() if dt else ""
 
@@ -53,7 +58,7 @@ def _pct(score, total) -> int:
     return int(round(100 * score / total)) if score is not None and total else 0
 
 
-templates.env.filters.update(initials=_initials, hue=_hue, iso=_iso, num=_num)
+templates.env.filters.update(initials=_initials, hue=_hue, cover_hue=_cover_hue, iso=_iso, num=_num)
 templates.env.globals.update(pct=_pct)
 
 

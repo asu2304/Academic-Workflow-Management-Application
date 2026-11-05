@@ -2,17 +2,17 @@
 {% from "macros.html" import icon, avatar, when, empty %}
 {% block title %}Email outbox{% endblock %}
 {% block content %}
-<div class="page-head"><div><span class="eyebrow">Email</span><h1>Outbox</h1><div class="meta">Every results email sent to your students.</div></div></div>
-{% if not smtp %}<div class="notice warn" style="margin-bottom:24px"><span><b>Email delivery isn't set up,</b> so messages are kept here instead of being sent. Add <code>SMTP_HOST</code> and the other SMTP settings to <code>.env</code> to deliver them.</span></div>{% endif %}
-<div class="panel">
+<div class="page-head"><div><h1>Email outbox</h1><div class="sub">Every results email sent to your students.</div></div></div>
+{% if not smtp %}<div class="alert warn" style="margin-bottom:16px">{{ icon('info', 'sm') }}<span class="txt"><b>Email isn't configured, so messages are saved here instead of being sent.</b> Set <code>SMTP_HOST</code> and friends in <code>.env</code> to deliver real email.</span></div>{% endif %}
+<div class="card">
 {% for m in emails %}
   <details class="mail-item">
-    <summary>{{ avatar(m.to_email) }}<div style="flex:1;min-width:0"><div class="strong ellipsis">{{ m.subject }}</div><div class="small muted ellipsis">To {{ m.to_email }} · {{ when(m.created_at, 'rel') }}</div></div>
-      <span class="tag {{ 's-emailed' if m.status == 'sent' else ('s-failed' if m.status == 'failed' else '') }}">{{ {'sent': 'Sent', 'failed': 'Failed', 'logged': 'Not sent'}[m.status] }}</span><span class="chev">{{ icon('chevron-right', 'sm') }}</span></summary>
-    <div class="mail-body">{% if m.error %}<div class="notice error" style="margin-bottom:12px"><span>{{ m.error }}</span></div>{% endif %}<pre>{{ m.body }}</pre></div>
+    <summary>{{ avatar(m.to_email) }}<div class="grow" style="flex:1;min-width:0"><div class="strong ellipsis">{{ m.subject }}</div><div class="xs muted ellipsis">To {{ m.to_email }} · {{ when(m.created_at, 'rel') }}</div></div>
+      <span class="badge {{ 's-emailed' if m.status == 'sent' else ('s-failed' if m.status == 'failed' else 's-submitted') }}">{{ {'sent': 'Sent', 'failed': 'Failed', 'logged': 'Saved (not sent)'}[m.status] }}</span>{{ icon('chevron-right', 'sm') }}</summary>
+    <div class="mail-body">{% if m.error %}<div class="alert error" style="margin-bottom:10px">{{ icon('alert', 'sm') }}<span class="txt">{{ m.error }}</span></div>{% endif %}<pre>{{ m.body }}</pre></div>
   </details>
 {% else %}
-  {% call empty('No emails yet', 'When you approve results, the email each student receives appears here.') %}{% endcall %}
+  {% call empty('mail', 'No emails yet', 'When you approve results, the email each student receives appears here.') %}{% endcall %}
 {% endfor %}
 </div>
 {% endblock %}

@@ -1,18 +1,19 @@
 {% extends "base.html" %}
-{% from "macros.html" import icon, empty, course_tile %}
+{% from "macros.html" import icon, empty %}
 {% block title %}Courses{% endblock %}
 {% block content %}
 <div class="page-head">
-  <div><span class="eyebrow">{{ courses|length }} course{{ 's' if courses|length != 1 }}</span><h1>{{ 'Courses' if user.is_instructor else 'Course catalog' }}</h1></div>
+  <div><h1>{{ 'Courses' if user.is_instructor else 'Course catalog' }}</h1><div class="sub">{{ courses|length }} course{{ 's' if courses|length != 1 }} available{% if not user.is_instructor %} · enroll to get material and assignments{% endif %}</div></div>
   <div class="row">
-    <div class="search" style="width:280px">{{ icon('search', 'sm') }}<input type="search" placeholder="Search by code, title or instructor" data-search=".tile" data-empty="no-match" aria-label="Search courses"></div>
-    {% if user.is_instructor %}<a class="btn dark" href="/courses/new">New course</a>{% endif %}
+    <div class="input-icon" style="width:260px">{{ icon('search', 'sm') }}<input type="search" placeholder="Search courses…" data-search=".course-card" data-empty="no-match" aria-label="Search courses"></div>
+    {% if user.is_instructor %}<a class="btn" href="/courses/new">{{ icon('plus', 'sm') }}New course</a>{% endif %}
   </div>
 </div>
 {% if courses %}
-  <div class="grid cols-3">{% for c in courses %}{{ course_tile(c, loop.index is even, enrolled, not user.is_instructor) }}{% endfor %}</div>
-  <div id="no-match" class="panel" hidden>{% call empty('No matching courses', 'Try a different course code, title or instructor name.') %}{% endcall %}</div>
+  {% set show_enroll = not user.is_instructor %}
+  <div class="grid cols-3">{% for c in courses %}{% include "_course_card.html" %}{% endfor %}</div>
+  <div id="no-match" class="card" hidden>{% call empty('search', 'No matching courses', 'Try a different course code, title or instructor name.') %}{% endcall %}</div>
 {% else %}
-  <div class="panel">{% call empty('No courses yet', 'Courses published by instructors will appear here.') %}{% if user.is_instructor %}<a class="btn" href="/courses/new">Create a course</a>{% endif %}{% endcall %}</div>
+  <div class="card">{% call empty('book', 'No courses yet', 'Courses published by instructors will appear here.') %}{% if user.is_instructor %}<a class="btn" href="/courses/new">{{ icon('plus', 'sm') }}Create a course</a>{% endif %}{% endcall %}</div>
 {% endif %}
 {% endblock %}

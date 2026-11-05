@@ -2,23 +2,18 @@
 <!doctype html>
 <html lang="en" class="no-js">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}GradeMate{% endblock %} · GradeMate</title>
-  {% include "_head.html" %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=7">
+  <script src="/static/app.js?v=7" defer></script>
 </head>
 <body>
 {% include "_icons.html" %}
-<div class="utility"><div class="wrap"><span>Course management and assignment grading for schools</span></div></div>
-<header class="header">
-  <div class="wrap">
-    <a class="logo" href="/"><span class="logo-mark">G</span>GradeMate</a>
-    <div class="actions" style="display:flex">
-      <a class="btn soft" href="/login">Log in</a>
-      <a class="btn dark" href="/signup">Get started</a>
-    </div>
-  </div>
-</header>
 {% block body %}{% endblock %}
-<footer class="footer"><div class="wrap"><span>GradeMate</span><span>Prototype build</span></div></footer>
 {% include "_dialogs.html" %}
 {% block toasts %}<script type="application/json" id="flash-data">{{ flashes_json|safe }}</script>{% endblock %}
 </body>

@@ -2,45 +2,55 @@
 <!doctype html>
 <html lang="en" class="no-js">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}GradeMate{% endblock %} · GradeMate</title>
-  {% include "_head.html" %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=7">
+  <script src="/static/app.js?v=7" defer></script>
 </head>
 <body>
 {% include "_icons.html" %}
-<div class="utility">
-  <div class="wrap">
-    {% if ai_mock and user.is_instructor %}<span class="note">Mock grading is on: add an AI key to <code style="background:rgba(0,0,0,.08)">.env</code> for real grades</span>{% endif %}
-    <span class="hide-sm">Signed in as {{ user.email }}</span>
-    <span class="sep hide-sm"></span>
-    <span class="hide-sm" style="text-transform:capitalize">{{ user.role }} account</span>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="/dashboard"><span class="brand-mark">{{ icon('cap') }}</span>GradeMate</a>
+    <div class="nav-label">Menu</div>
+    <nav class="nav">
+      <a href="/dashboard" class="{{ 'active' if path == '/dashboard' }}">{{ icon('home') }}Dashboard</a>
+      <a href="/courses" class="{{ 'active' if path.startswith('/courses') or path.startswith('/assignments') or path.startswith('/submissions') }}">{{ icon('book') }}{{ 'Courses' if user.is_instructor else 'Course catalog' }}</a>
+      {% if user.is_instructor %}
+        <a href="/dashboard#review" class="">{{ icon('clipboard') }}To review{% if review_count %}<span class="count">{{ review_count }}</span>{% endif %}</a>
+        <a href="/outbox" class="{{ 'active' if path == '/outbox' }}">{{ icon('mail') }}Email outbox</a>
+      {% endif %}
+    </nav>
+    {% if user.is_instructor %}
+    <div class="nav-label">Create</div>
+    <nav class="nav"><a href="/courses/new" class="{{ 'active' if path == '/courses/new' }}">{{ icon('plus') }}New course</a></nav>
+    {% endif %}
+    <div class="sidebar-foot">
+      <div class="me">
+        {{ avatar(user.name) }}
+        <div class="who"><div class="name">{{ user.name }}</div><div class="role">{{ user.role }}</div></div>
+        <form method="post" action="/logout"><button class="btn quiet sm icon-only" title="Log out" aria-label="Log out">{{ icon('logout', 'sm') }}</button></form>
+      </div>
+    </div>
+  </aside>
+  <div class="scrim"></div>
+  <div class="content">
+    <div class="mobile-bar">
+      <button class="btn quiet icon-only" data-nav-toggle aria-label="Menu">{{ icon('menu') }}</button>
+      <a class="brand" href="/dashboard"><span class="brand-mark">{{ icon('cap', 'sm') }}</span>GradeMate</a>
+    </div>
+    {% if ai_mock and user.is_instructor %}<div class="mock-banner">{{ icon('info', 'sm') }} AI grading is in <b>&nbsp;mock mode&nbsp;</b> — add <code>GEMINI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code> to <code>.env</code> for real grades.</div>{% endif %}
+    <main class="page {% block page_class %}{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
   </div>
 </div>
-<header class="header">
-  <div class="wrap">
-    <a class="logo" href="/dashboard"><span class="logo-mark">G</span>GradeMate</a>
-    <nav class="mainnav" aria-label="Main">
-      <a href="/dashboard" class="{{ 'active' if path == '/dashboard' }}">Dashboard</a>
-      <a href="/courses" class="{{ 'active' if path.startswith('/courses') or path.startswith('/assignments') or path.startswith('/submissions') }}">{{ 'Courses' if user.is_instructor else 'Course catalog' }}</a>
-      {% if user.is_instructor %}
-        <a href="/dashboard#review">To review{% if review_count %} <span class="count">{{ review_count }}</span>{% endif %}</a>
-        <a href="/outbox" class="{{ 'active' if path == '/outbox' }}">Email outbox</a>
-        <a href="/courses/new" class="mobile-only">New course</a>
-      {% endif %}
-      <form method="post" action="/logout" class="mobile-only" style="padding:14px 0"><button class="btn outline sm">Log out</button></form>
-    </nav>
-    <div class="actions">
-      {% if user.is_instructor %}<a class="btn dark" href="/courses/new">New course</a>{% endif %}
-      <div class="userchip">{{ avatar(user.name, 'sm') }}<div class="who"><div class="name">{{ user.name }}</div><div class="role">{{ user.role }}</div></div></div>
-      <form method="post" action="/logout"><button class="btn outline sm">Log out</button></form>
-    </div>
-    <button class="btn ghost icon-only menu-btn" data-nav-toggle aria-label="Menu">{{ icon('menu') }}</button>
-  </div>
-</header>
-<main class="page {% block page_class %}{% endblock %}">
-  <div class="wrap">{% block content %}{% endblock %}</div>
-</main>
 {% include "_dialogs.html" %}
 <script type="application/json" id="flash-data">{{ flashes_json|safe }}</script>
-<noscript><div class="wrap">{% for f in flashes %}<div class="notice {{ f.kind }}">{{ f.message }}</div>{% endfor %}</div></noscript>
+<noscript>{% for f in flashes %}<div class="alert {{ f.kind }}">{{ f.message }}</div>{% endfor %}</noscript>
 </body>
 </html>

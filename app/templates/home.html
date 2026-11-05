@@ -1,33 +1,30 @@
 {% extends "public.html" %}
 {% from "macros.html" import icon %}
 {% block body %}
-<section class="hero wrap">
-  <h1>Teach the subject.<br><span class="light">Let grading keep up.</span></h1>
-  <p>Publish courses and assignments, collect student work, and get every answer graded question by question — with you approving each result before it reaches a student.</p>
-  <div class="row"><a class="btn lg" href="/signup">Create an account</a><a class="btn outline lg" href="/login">Log in</a></div>
-</section>
-
-<section class="showcase reveal">
-  <div class="shot">
-    <div class="shot-bar"><i></i><i></i><i></i><span class="small muted" style="margin-left:10px">PHY-101 · Homework 1: Kinematics</span></div>
-    <div class="table-wrap"><table class="table">
-      <thead><tr><th>Student</th><th>Submitted</th><th>Status</th><th>Score</th></tr></thead>
-      <tbody>
-        <tr><td><div class="person"><span class="avatar sm">AS</span><span class="name">Aarav Sharma</span></div></td><td class="small">6 Nov, 09:14</td><td><span class="tag s-evaluated">Needs review</span></td><td><span class="score">8 <span class="of">/ 10</span></span></td></tr>
-        <tr><td><div class="person"><span class="avatar sm">PV</span><span class="name">Priya Verma</span></div></td><td class="small">6 Nov, 10:02</td><td><span class="tag s-emailed">Results sent</span></td><td><span class="score">10 <span class="of">/ 10</span></span></td></tr>
-        <tr><td><div class="person"><span class="avatar sm">RK</span><span class="name">Rohan Kumar</span></div></td><td class="small">6 Nov, 11:47</td><td><span class="tag s-evaluated">Needs review</span></td><td><span class="score">5.5 <span class="of">/ 10</span></span></td></tr>
-        <tr><td><div class="person"><span class="avatar sm">MI</span><span class="name">Meera Iyer</span></div></td><td class="small">7 Nov, 08:30</td><td><span class="tag s-submitted">Submitted</span></td><td><span class="muted">—</span></td></tr>
-      </tbody>
-    </table></div>
+<header class="landing-nav">
+  <a class="brand" href="/"><span class="brand-mark">{{ icon('cap') }}</span>GradeMate</a>
+  <div class="row"><a class="btn quiet" href="/login">Log in</a><a class="btn" href="/signup">Get started</a></div>
+</header>
+<section class="landing-hero">
+  <div>
+    <span class="eyebrow">{{ icon('sparkles', 'sm') }} AI-assisted grading, human-approved</span>
+    <h1>Courses, assignments and <span class="grad">fair, fast grading</span> in one place.</h1>
+    <p class="lead">Instructors publish courses and assignments. Students enroll, learn and submit. A built-in agent grades every answer question by question — you review, adjust and approve, and results are emailed to students.</p>
+    <div class="row"><a class="btn lg" href="/signup">Create a free account {{ icon('arrow-right', 'sm') }}</a><a class="btn secondary lg" href="/login">I have an account</a></div>
+  </div>
+  <div class="card preview" aria-hidden="true">
+    <div class="row between"><div class="person"><span class="avatar" style="--h: 150">AS</span><div><div class="strong">Aarav Sharma</div><div class="xs muted">Homework 1 · Kinematics</div></div></div><span class="badge s-evaluated"><span class="dot"></span>Needs review</span></div>
+    <div class="qcard"><div class="qhead"><span class="qlabel">Q1</span><span class="spacer"></span><b>5</b><span class="muted">/ 5</span></div><div class="bar good"><span style="width:100%"></span></div><div class="small muted">Correct use of v = u + at with units. Well done!</div></div>
+    <div class="qcard"><div class="qhead"><span class="qlabel">Q2</span><span class="spacer"></span><b>3</b><span class="muted">/ 5</span></div><div class="bar mid"><span style="width:60%"></span></div><div class="small muted">Right formula, but the ½ was dropped in the last step.</div></div>
+    <div class="row between" style="margin-top:14px"><span class="small muted">{{ icon('bot', 'sm') }} Graded by agent</span><span class="btn sm success">{{ icon('send', 'sm') }} Approve &amp; email</span></div>
   </div>
 </section>
-
-<section class="wrap">
-  <div class="statement reveal"><h2>Every answer <b>graded against your rubric</b>, every grade <b>approved by you</b></h2></div>
-  <div class="steps">
-    <article class="tile reveal"><span class="num">01</span><h3>Publish the course</h3><p class="desc">Create a course, share notes and links, and let students enroll from the catalog.</p></article>
-    <article class="tile alt reveal"><span class="num">02</span><h3>Collect the work</h3><p class="desc">Students upload photos of handwritten answers, PDFs, or type their answers in.</p></article>
-    <article class="tile reveal"><span class="num">03</span><h3>Review and send</h3><p class="desc">Check each grade, adjust it or ask for a re-check, then email results to the class.</p></article>
+<section class="features">
+  <div class="grid cols-4">
+    <div class="card feature"><div class="ico tone-primary">{{ icon('book') }}</div><h3>Courses &amp; material</h3><p>Publish courses, upload notes and links, and let students enroll themselves.</p></div>
+    <div class="card feature"><div class="ico tone-blue">{{ icon('upload') }}</div><h3>Easy submissions</h3><p>Students upload photos of handwritten work, PDFs or type their answers.</p></div>
+    <div class="card feature"><div class="ico tone-amber">{{ icon('sparkles') }}</div><h3>Agent grading</h3><p>No rubric? The agent solves the paper, writes an answer key, then grades.</p></div>
+    <div class="card feature"><div class="ico tone-green">{{ icon('shield') }}</div><h3>You stay in control</h3><p>Edit any score or ask the agent to re-evaluate with your feedback.</p></div>
   </div>
 </section>
 {% endblock %}

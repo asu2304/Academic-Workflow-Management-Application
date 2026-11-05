@@ -3,20 +3,23 @@
 {% block title %}Log in{% endblock %}
 {% block toasts %}{% endblock %}
 {% block body %}
-<main class="auth-page">
-  <div class="auth-card">
-    <h1>Log in</h1>
-    <p class="lead">Welcome back. Pick up where you left off.</p>
-    {% for f in flashes %}<div class="notice {{ f.kind }}" style="margin-bottom:20px">{{ f.message }}</div>{% endfor %}
-    <form method="post" action="/login" class="stack">
-      <input type="hidden" name="next" value="{{ next }}">
-      <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autofocus autocomplete="email" placeholder="you@school.edu"></div>
-      <div class="field"><label for="pw">Password</label>
-        <div class="pw"><input id="pw" type="password" name="password" required autocomplete="current-password">
-          <button type="button" class="btn ghost sm icon-only" data-reveal="pw" aria-label="Show password">{{ icon('eye', 'sm') }}</button></div></div>
-      <button class="btn lg block">Log in</button>
-    </form>
-    <p class="alt">New to GradeMate? <a href="/signup">Create an account</a></p>
-  </div>
-</main>
+<div class="auth">
+  {% include "_auth_side.html" %}
+  <main class="auth-main">
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="lead">Log in to continue to GradeMate.</p>
+      {% for f in flashes %}<div class="alert {{ f.kind }} auth-flash">{{ icon('alert', 'sm') }}<span class="txt">{{ f.message }}</span></div>{% endfor %}
+      <form method="post" action="/login" class="stack">
+        <input type="hidden" name="next" value="{{ next }}">
+        <div class="field"><label for="email">Email</label><div class="input-icon">{{ icon('mail', 'sm') }}<input id="email" type="email" name="email" required autofocus autocomplete="email" placeholder="you@school.edu"></div></div>
+        <div class="field"><label for="pw">Password</label>
+          <div class="input-icon" style="position:relative">{{ icon('shield', 'sm') }}<input id="pw" type="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+            <button type="button" class="btn quiet sm icon-only" data-reveal="pw" aria-label="Show password" style="position:absolute;right:4px;top:4px">{{ icon('eye', 'sm') }}</button></div></div>
+        <button class="btn lg block">Log in</button>
+      </form>
+      <p class="alt">New to GradeMate? <a href="/signup">Create an account</a></p>
+    </div>
+  </main>
+</div>
 {% endblock %}
