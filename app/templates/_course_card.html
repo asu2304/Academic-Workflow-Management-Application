@@ -1,0 +1,20 @@
+{# expects: c, and optional `enrolled` set, `show_enroll` #}
+<div class="card course-card hoverable" data-text="{{ c.code }} {{ c.title }} {{ c.instructor.name }} {{ c.description }}">
+  <a href="/courses/{{ c.id }}" class="cover" style="--h: {{ c.id|hue }}"><span class="code">{{ c.code }}</span></a>
+  <div class="body">
+    <h3><a href="/courses/{{ c.id }}" style="color:inherit">{{ c.title }}</a></h3>
+    <div class="small muted">{{ c.instructor.name }}</div>
+    {% if c.description %}<p class="small" style="color:var(--text-2)">{{ c.description|truncate(110) }}</p>{% endif %}
+    <div class="meta">
+      <span><svg class="icon sm"><use href="#i-users"/></svg>{{ c.enrollments|length }}</span>
+      <span><svg class="icon sm"><use href="#i-clipboard"/></svg>{{ c.assignments|length }} assignments</span>
+      <span><svg class="icon sm"><use href="#i-layers"/></svg>{{ c.materials|length }} materials</span>
+    </div>
+    {% if show_enroll %}
+      <div style="margin-top:10px">
+      {% if c.id in enrolled %}<a class="btn secondary sm block" href="/courses/{{ c.id }}"><svg class="icon sm"><use href="#i-check"/></svg>Enrolled — open</a>
+      {% else %}<form method="post" action="/courses/{{ c.id }}/enroll"><button class="btn sm block"><svg class="icon sm"><use href="#i-plus"/></svg>Enroll</button></form>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>

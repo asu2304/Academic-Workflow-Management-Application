@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon %}
+{% block title %}New course{% endblock %}
+{% block page_class %}narrow{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/courses">Courses</a><span class="sep">/</span><span>New course</span></nav>
+<div class="page-head"><div><h1>Create a course</h1><div class="meta">Students find and enroll in it from the course catalog.</div></div></div>
+<form method="post" action="/courses/new" class="panel">
+  <div class="form-block">
+    <div class="intro"><h3>Basics</h3><p>A short code and a clear title help students find your course.</p></div>
+    <div class="stack">
+      <div class="field"><label for="code">Course code</label><input id="code" name="code" required maxlength="40" placeholder="PHY-101"></div>
+      <div class="field"><label for="title">Title</label><input id="title" name="title" required maxlength="200" placeholder="Physics: Motion and Forces"></div>
+    </div>
+  </div>
+  <div class="form-block">
+    <div class="intro"><h3>Description</h3><p>What students will learn, prerequisites, schedule.</p></div>
+    <div class="field"><textarea name="description" rows="6" aria-label="Description"></textarea></div>
+  </div>
+  <div class="form-foot"><a class="btn outline" href="/dashboard">Cancel</a><button class="btn">Create course</button></div>
+</form>
+{% endblock %}

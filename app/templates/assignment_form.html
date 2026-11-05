@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon %}
+{% block title %}New assignment{% endblock %}
+{% block page_class %}narrow{% endblock %}
+{% block content %}
+<nav class="crumbs"><a href="/courses">Courses</a><span class="sep">/</span><a href="/courses/{{ course.id }}">{{ course.code }}</a><span class="sep">/</span><span>New assignment</span></nav>
+<div class="page-head"><div><h1>New assignment</h1><div class="meta">Published to everyone enrolled in {{ course.title }}.</div></div></div>
+<form method="post" action="/courses/{{ course.id }}/assignments/new" enctype="multipart/form-data" class="panel">
+  <input type="hidden" name="tz_offset" value="">
+  <div class="form-block">
+    <div class="intro"><h3>Questions</h3><p>Type the questions, upload the question paper, or both. Put the marks next to each question if you can.</p></div>
+    <div class="stack">
+      <div class="field"><label for="title">Title</label><input id="title" name="title" required maxlength="200" placeholder="Homework 1: Kinematics"></div>
+      <div class="field"><label for="instructions">Questions and instructions</label>
+        <textarea id="instructions" name="instructions" rows="8" placeholder="Q1 (5 marks) A car accelerates from rest at 2 m/s² for 10 s. Find its final velocity.&#10;Q2 (5 marks) How far does it travel in that time?"></textarea></div>
+      <label class="dropzone"><input type="file" name="question_file" accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.md">
+        <div class="dz-title"><u>Upload the question paper</u> or drag it here</div><div class="dz-hint">Optional. PDF, image or text file.</div></label>
+    </div>
+  </div>
+  <div class="form-block">
+    <div class="intro"><h3>Marks and deadline</h3><p>Students see the due date in their own time zone.</p></div>
+    <div class="grid cols-2">
+      <div class="field"><label for="max_marks">Total marks</label><input id="max_marks" type="number" name="max_marks" required min="1" step="0.5" value="10"></div>
+      <div class="field"><label for="due_at">Due date <span class="muted">(optional)</span></label><input id="due_at" type="datetime-local" name="due_at"></div>
+    </div>
+  </div>
+  <div class="form-block">
+    <div class="intro"><h3>Grading</h3><p>Answers are graded against your rubric. Leave it empty and an answer key is written for you to check first.</p></div>
+    <div class="stack">
+      <div class="field"><label for="rubric">Rubric or answer key <span class="muted">(optional)</span></label>
+        <textarea id="rubric" name="rubric" rows="6" placeholder="Q1: v = u + at = 20 m/s. 2 marks formula, 2 substitution, 1 answer with unit.&#10;Q2: …"></textarea></div>
+      <label class="switch"><input type="checkbox" name="skip_review" value="1"><span class="track"></span>
+        <span class="txt"><b>Send results without my review</b><span>Email results to students as soon as grading finishes. You can still edit grades afterwards.</span></span></label>
+    </div>
+  </div>
+  <div class="form-foot"><a class="btn outline" href="/courses/{{ course.id }}">Cancel</a><button class="btn">Publish assignment</button></div>
+</form>
+{% endblock %}

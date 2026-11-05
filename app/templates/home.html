@@ -1,0 +1,33 @@
+{% extends "public.html" %}
+{% from "macros.html" import icon %}
+{% block body %}
+<section class="hero wrap">
+  <h1>Teach the subject.<br><span class="light">Let grading keep up.</span></h1>
+  <p>Publish courses and assignments, collect student work, and get every answer graded question by question — with you approving each result before it reaches a student.</p>
+  <div class="row"><a class="btn lg" href="/signup">Create an account</a><a class="btn outline lg" href="/login">Log in</a></div>
+</section>
+
+<section class="showcase reveal">
+  <div class="shot">
+    <div class="shot-bar"><i></i><i></i><i></i><span class="small muted" style="margin-left:10px">PHY-101 · Homework 1: Kinematics</span></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Student</th><th>Submitted</th><th>Status</th><th>Score</th></tr></thead>
+      <tbody>
+        <tr><td><div class="person"><span class="avatar sm">AS</span><span class="name">Aarav Sharma</span></div></td><td class="small">6 Nov, 09:14</td><td><span class="tag s-evaluated">Needs review</span></td><td><span class="score">8 <span class="of">/ 10</span></span></td></tr>
+        <tr><td><div class="person"><span class="avatar sm">PV</span><span class="name">Priya Verma</span></div></td><td class="small">6 Nov, 10:02</td><td><span class="tag s-emailed">Results sent</span></td><td><span class="score">10 <span class="of">/ 10</span></span></td></tr>
+        <tr><td><div class="person"><span class="avatar sm">RK</span><span class="name">Rohan Kumar</span></div></td><td class="small">6 Nov, 11:47</td><td><span class="tag s-evaluated">Needs review</span></td><td><span class="score">5.5 <span class="of">/ 10</span></span></td></tr>
+        <tr><td><div class="person"><span class="avatar sm">MI</span><span class="name">Meera Iyer</span></div></td><td class="small">7 Nov, 08:30</td><td><span class="tag s-submitted">Submitted</span></td><td><span class="muted">—</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="statement reveal"><h2>Every answer <b>graded against your rubric</b>, every grade <b>approved by you</b></h2></div>
+  <div class="steps">
+    <article class="tile reveal"><span class="num">01</span><h3>Publish the course</h3><p class="desc">Create a course, share notes and links, and let students enroll from the catalog.</p></article>
+    <article class="tile alt reveal"><span class="num">02</span><h3>Collect the work</h3><p class="desc">Students upload photos of handwritten answers, PDFs, or type their answers in.</p></article>
+    <article class="tile reveal"><span class="num">03</span><h3>Review and send</h3><p class="desc">Check each grade, adjust it or ask for a re-check, then email results to the class.</p></article>
+  </div>
+</section>
+{% endblock %}

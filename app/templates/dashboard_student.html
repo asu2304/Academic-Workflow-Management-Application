@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, student_badge, due, empty, course_tile, score %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><span class="eyebrow">Dashboard</span><h1>Hi {{ user.name.split()[0] }}, {% if stats.todo %}<span class="light">you have {{ stats.todo }} assignment{{ 's' if stats.todo != 1 }} to submit.</span>{% else %}<span class="light">you're up to date.</span>{% endif %}</h1></div>
+  <a class="btn outline" href="/courses">Browse courses</a>
+</div>
+
+<div class="figures">
+  <div><div class="num">{{ stats.courses }}</div><div class="lbl">Enrolled courses</div></div>
+  <div><div class="num">{{ stats.todo }}</div><div class="lbl">To submit</div></div>
+  <div><div class="num">{{ stats.awaiting }}</div><div class="lbl">Awaiting results</div></div>
+  <div><div class="num">{{ '%d%%'|format(stats.average) if stats.average is not none else '—' }}</div><div class="lbl">Average score</div></div>
+</div>
+
+<section class="section">
+  <div class="section-head"><h2>Assignments</h2></div>
+  <div class="panel">
+  {% if assignments %}
+    <ul class="list">
+    {% for a in assignments %}{% set s = my_subs.get(a.id) %}
+      <li>
+        <div class="grow"><a class="title" href="/assignments/{{ a.id }}">{{ a.title }}</a>
+          <div class="desc"><span>{{ a.course.code }} · {{ a.course.title }}</span>{{ due(a) }}</div></div>
+        {% if s and s.visible_to_student %}{{ score(s.total_score, a.max_marks) }}{% endif %}
+        {{ student_badge(s) }}
+        <a class="btn {{ 'outline' if s else '' }} sm" href="/assignments/{{ a.id }}">{{ 'Open' if s else 'Submit' }}</a>
+      </li>
+    {% endfor %}
+    </ul>
+  {% else %}
+    {% call empty('No assignments yet', 'Assignments from your courses will appear here.') %}{% endcall %}
+  {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>My courses</h2></div>
+  {% if courses %}
+  <div class="grid cols-3">{% for c in courses %}{{ course_tile(c, loop.index is even) }}{% endfor %}</div>
+  {% else %}
+  <div class="panel">{% call empty("You haven't enrolled in a course yet", 'Browse the catalog and enroll to get study material and assignments.') %}<a class="btn" href="/courses">Browse courses</a>{% endcall %}</div>
+  {% endif %}
+</section>
+{% endblock %}

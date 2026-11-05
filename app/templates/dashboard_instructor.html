@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, status_badge, person, when, empty, course_tile %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><span class="eyebrow">Dashboard</span><h1>Good to see you, {{ user.name.split()[0] }}.</h1></div>
+</div>
+
+<div class="figures">
+  <div><div class="num">{{ stats.courses }}</div><div class="lbl">Courses</div></div>
+  <div><div class="num">{{ stats.students }}</div><div class="lbl">Students enrolled</div></div>
+  <div><div class="num">{{ stats.pending }}</div><div class="lbl">Waiting to be graded</div></div>
+  <div><div class="num">{{ stats.review }}{% if stats.review %}<span class="attn" title="Needs attention"></span>{% endif %}</div><div class="lbl">Need your review</div></div>
+</div>
+
+<section class="section" id="review">
+  <div class="section-head"><h2>Needs your attention</h2></div>
+  <div class="panel">
+  {% if to_review %}
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Status</th><th class="right"></th></tr></thead>
+      <tbody>
+      {% for s in to_review %}
+        <tr data-href="{{ '/submissions/%d'|format(s.id) if s.status == 'evaluated' else '/assignments/%d'|format(s.assignment_id) }}">
+          <td>{{ person(s.student, 'sm') }}</td>
+          <td><div class="strong">{{ s.assignment.title }}</div><div class="xs muted">{{ s.assignment.course.code }}</div></td>
+          <td class="small">{{ when(s.submitted_at, 'rel') }}</td>
+          <td>{{ status_badge(s.status) }}</td>
+          <td class="right">{% if s.status == 'evaluated' %}<a class="btn sm" href="/submissions/{{ s.id }}">Review</a>{% else %}<a class="btn outline sm" href="/assignments/{{ s.assignment_id }}">Grade</a>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  {% else %}
+    {% call empty("You're all caught up", "New submissions and grades waiting for your review will show up here.") %}{% endcall %}
+  {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head"><h2>Your courses</h2>{% if courses %}<a class="more-link" href="/courses">All courses {{ icon('chevron-right', 'sm') }}</a>{% endif %}</div>
+  {% if courses %}
+  <div class="grid cols-3">{% for c in courses %}{{ course_tile(c, loop.index is even) }}{% endfor %}</div>
+  {% else %}
+  <div class="panel">{% call empty('Create your first course', 'A course holds your study material, assignments and enrolled students.') %}<a class="btn" href="/courses/new">New course</a>{% endcall %}</div>
+  {% endif %}
+</section>
+{% endblock %}

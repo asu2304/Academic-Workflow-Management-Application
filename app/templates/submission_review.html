@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, status_badge, avatar, when, empty, file_icon %}
+{% block title %}Review · {{ s.student.name }}{% endblock %}
+{% block content %}
+{% set editable = s.status in ['evaluated', 'approved', 'emailed'] %}
+{% if s.status == 'evaluating' %}<div data-poll="/submissions/{{ s.id }}/status" data-poll-key="{{ poll_key }}"></div>{% endif %}
+
+<div class="crumbs"><a href="/courses/{{ a.course_id }}">{{ a.course.code }}</a>{{ icon('chevron-right', 'sm') }}<a href="/assignments/{{ a.id }}">{{ a.title }}</a>{{ icon('chevron-right', 'sm') }}<span>{{ s.student.name }}</span></div>
+<div class="page-head">
+  <div class="person">{{ avatar(s.student.name, 'lg') }}<div>
+    <h1>{{ s.student.name }}</h1>
+    <div class="sub"><span>{{ s.student.email }}</span><span>{{ icon('clock', 'sm') }}Submitted {{ when(s.submitted_at, 'rel') }}</span>{% if a.due_at and s.submitted_at > a.due_at %}<span class="badge late">Late</span>{% endif %}{{ status_badge(s.status) }}</div></div></div>
+  <div class="row">
+    <span class="small muted">Submission {{ position }} of {{ total }}</span>
+    {% if next_sub %}<a class="btn secondary sm" href="/submissions/{{ next_sub.id }}">Next to review {{ icon('arrow-right', 'sm') }}</a>{% endif %}
+  </div>
+</div>
+
+{% if s.error %}<div class="alert error" style="margin-bottom:16px">{{ icon('alert', 'sm') }}<span class="txt">{{ s.error }}</span></div>{% endif %}
+{% if s.status == 'evaluating' %}<div class="alert info" style="margin-bottom:16px"><span class="badge s-evaluating" style="background:transparent;padding:0"><span class="dot"></span></span><span class="txt"><b>The agent is working on this submission.</b> This page updates by itself when it's done.</span></div>{% endif %}
+
+<div data-dirty-scope>
+<div class="workspace">
+  <section class="card viewer">
+    <div class="card-head"><h2>{{ icon('file-text') }}Student's work</h2><span class="small muted">{{ s.files|length }} file{{ 's' if s.files|length != 1 }}{% if s.text_answer %} + typed answer{% endif %}</span></div>
+    <div class="card-body">
+      {% if s.text_answer %}<div class="label" style="margin-bottom:6px">Typed answer</div><div class="typed">{{ s.text_answer }}</div>{% endif %}
+      {% for f in s.files %}
+        {% if f.content_type.startswith('image/') %}
+          <img class="work-img" src="/submission-files/{{ f.id }}" alt="{{ f.original_name }}" data-lightbox loading="lazy">
+        {% elif f.content_type == 'application/pdf' %}
+          <iframe class="work-pdf" src="/submission-files/{{ f.id }}" title="{{ f.original_name }}"></iframe>
+          <p class="xs muted" style="margin:6px 0 14px"><a href="/submission-files/{{ f.id }}" target="_blank">Open {{ f.original_name }} in a new tab</a></p>
+        {% else %}
+          <a class="attach" href="/submission-files/{{ f.id }}" target="_blank" style="margin-bottom:12px">{{ file_icon(f.original_name) }}<b>{{ f.original_name }}</b>{{ icon('external', 'sm') }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if not s.files and not s.text_answer %}<p class="muted">Nothing was submitted.</p>{% endif %}
+    </div>
+  </section>
+
+  <div class="stack">
+    {% if results.verdict %}
+    <div class="verdict v-{{ results.verdict }}">
+      <div class="vt">{{ icon({'agree':'check-circle','partly_agree':'refresh','disagree':'alert'}[results.verdict]) }}Re-evaluation: {{ {'agree':'Agrees with your feedback','partly_agree':'Partly agrees','disagree':'Disagrees — kept its grade'}[results.verdict] }}</div>
+      {% if results.instructor_feedback %}<div class="small muted" style="margin-bottom:6px">You said: “{{ results.instructor_feedback }}”</div>{% endif %}
+      <p class="small">{{ results.verdict_reasoning }}</p>
+    </div>
+    {% endif %}
+    {% if results.flags %}<div class="alert warn">{{ icon('alert', 'sm') }}<span class="txt"><b>Check this:</b> {{ results.flags|join(' · ') }}</span></div>{% endif %}
+
+    <section class="card">
+      <div class="card-head"><h2>{{ icon('sparkles') }}Agent's grading</h2>{% if results.questions %}<span class="small muted">Edit any score or feedback</span>{% endif %}</div>
+      {% if results.questions %}
+      <form method="post" action="/submissions/{{ s.id }}/edit" id="edit-form" class="card-body stack" data-grader>
+        {% for q in results.questions %}
+        <div class="qcard">
+          <div class="qhead">
+            <span class="qlabel">{{ q.question }}</span><span class="spacer"></span>
+            <div class="stepper-input">
+              <button type="button" data-step="-0.5" aria-label="Decrease">−</button>
+              <input type="number" name="score_{{ loop.index0 }}" value="{{ q.score|num }}" min="0" max="{{ q.max_score|num }}" step="0.25" data-score aria-label="Score for {{ q.question }}" {% if not editable %}disabled{% endif %}>
+              <button type="button" data-step="0.5" aria-label="Increase">+</button>
+              <span class="of">/ {{ q.max_score|num }}</span>
+            </div>
+          </div>
+          <div class="bar"><span></span></div>
+          <div class="field"><label class="xs muted" for="fb{{ loop.index0 }}">Feedback to student</label>
+            <textarea id="fb{{ loop.index0 }}" name="feedback_{{ loop.index0 }}" rows="2" style="min-height:58px" {% if not editable %}disabled{% endif %}>{{ q.feedback }}</textarea></div>
+          <details class="more"><summary>{{ icon('chevron-right', 'sm') }}Why this score</summary><div class="reasoning pre">{{ q.reasoning }}</div></details>
+        </div>
+        {% endfor %}
+        <div class="field"><label for="overall">Overall feedback</label><textarea id="overall" name="overall_feedback" rows="3" {% if not editable %}disabled{% endif %}>{{ results.overall_feedback }}</textarea></div>
+        <div class="field"><label for="note">Reason for your changes <span class="muted">(saved in history)</span></label><input id="note" name="note" placeholder="e.g. accepted an alternative method in Q2" {% if not editable %}disabled{% endif %}></div>
+      </form>
+      {% elif s.status != 'evaluating' %}
+      <div class="card-body">{% call empty('sparkles', 'Not graded yet', 'Use “Evaluate” on the assignment page to grade all pending submissions.') %}<a class="btn" href="/assignments/{{ a.id }}">Go to assignment</a>{% endcall %}</div>
+      {% else %}
+      <div class="card-body">{% call empty('bot', 'Grading in progress…', 'The agent is reading the work and applying the rubric.') %}{% endcall %}</div>
+      {% endif %}
+    </section>
+
+  </div>
+</div>
+
+{% if editable %}
+<div class="action-bar">
+  <div class="total"><span class="muted small">Total</span><span class="big" data-total>{{ s.total_score|num }}</span><span class="muted">/ {{ a.max_marks|num }}</span></div>
+  <span class="dirty-note">{{ icon('edit', 'sm') }}Unsaved changes</span>
+  <span class="spacer"></span>
+  <button class="btn secondary sm" form="edit-form">{{ icon('check', 'sm') }}Save edits</button>
+  <button class="btn secondary sm" data-open="reeval-dialog">{{ icon('refresh', 'sm') }}Re-evaluate</button>
+  {% if s.status == 'evaluated' %}
+  <form method="post" action="/submissions/{{ s.id }}/approve" class="inline" data-needs-clean><button class="btn success sm">{{ icon('send', 'sm') }}Approve &amp; email</button></form>
+  {% else %}
+  <span class="badge s-emailed">{{ icon('check', 'sm') }}{{ 'Emailed ' if s.emailed_at else 'Approved' }}{% if s.emailed_at %}{{ when(s.emailed_at, 'rel') }}{% endif %}</span>
+  {% endif %}
+</div>
+{% endif %}
+</div>
+
+{% if editable %}
+<dialog class="modal" id="reeval-dialog">
+  <form method="post" action="/submissions/{{ s.id }}/reevaluate">
+    <div class="modal-head"><h2>{{ icon('refresh') }} Ask the agent to re-evaluate</h2><button type="button" class="btn quiet sm icon-only" data-close aria-label="Close">{{ icon('x', 'sm') }}</button></div>
+    <div class="modal-body stack">
+      <p class="small muted">Tell the agent what it missed. It re-checks the work against your point and the rubric, then tells you whether it agrees — it may disagree if the evidence doesn't support your feedback.</p>
+      <textarea name="feedback" rows="4" required placeholder="e.g. Q2: the unit m/s is written at the top of page 2, please re-check."></textarea>
+    </div>
+    <div class="modal-foot"><button type="button" class="btn secondary" data-close>Cancel</button><button class="btn">{{ icon('sparkles', 'sm') }}Re-evaluate</button></div>
+  </form>
+</dialog>
+{% endif %}
+
+<div class="section">
+  <div class="section-head"><h2>History</h2></div>
+  <div class="card card-pad">
+  {% if s.events %}
+    {% set K = {'ai_grade': ('AI graded', 'sparkles', 'tone-primary'), 'reeval': ('Re-evaluated by agent', 'refresh', 'tone-amber'), 'manual_edit': ('Edited by instructor', 'edit', 'tone-blue'), 'approve': ('Approved', 'check', 'tone-green'), 'email': ('Results emailed', 'mail', 'tone-green'), 'error': ('Error', 'alert', 'tone-red')} %}
+    <ul class="timeline">
+    {% for e in s.events|reverse %}{% set k = K[e.kind] %}
+      <li><span class="tdot {{ k[2] }}">{{ icon(k[1], 'sm') }}</span>
+        <div class="tbody"><div class="ttitle">{{ k[0] }}{% if e.payload.total is defined %} · {{ e.payload.total|num }} / {{ a.max_marks|num }}{% endif %}</div>
+          <div class="tmeta">{{ when(e.created_at, 'short') }} · {{ e.actor }}{% if e.payload.edit_note %} · “{{ e.payload.edit_note }}”{% endif %}{% if e.payload.verdict %} · verdict: {{ e.payload.verdict|replace('_', ' ') }}{% endif %}{% if e.payload.status %} · {{ e.payload.status }}{% endif %}{% if e.payload.error %} · {{ e.payload.error|truncate(140) }}{% endif %}</div></div></li>
+    {% endfor %}
+    </ul>
+  {% else %}<p class="muted">No activity yet.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

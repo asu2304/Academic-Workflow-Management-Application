@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "macros.html" import icon, due, when, empty %}
+{% block title %}{{ a.title }}{% endblock %}
+{% block content %}
+{% set graded = sub and sub.visible_to_student %}
+{% set locked = sub and sub.status not in ['submitted', 'failed'] %}
+<nav class="crumbs"><a href="/dashboard">Dashboard</a><span class="sep">/</span><a href="/courses/{{ a.course_id }}">{{ a.course.code }}</a><span class="sep">/</span><span>{{ a.title }}</span></nav>
+<div class="page-head">
+  <div><span class="eyebrow">{{ a.course.title }}</span><h1>{{ a.title }}</h1><div class="meta"><span>{{ a.max_marks|num }} marks</span>{{ due(a) }}</div></div>
+</div>
+
+<div class="status-line" style="margin-bottom:28px" aria-label="Progress">
+  <div class="{{ 'done' if sub else 'now' }}"><span class="n">1</span>Submit</div>
+  <div class="{{ 'done' if graded else ('now' if sub else '') }}"><span class="n">2</span>Grading</div>
+  <div class="{{ 'done' if graded }}"><span class="n">3</span>Results</div>
+</div>
+
+<div class="grid cols-2" style="align-items:start">
+  <section class="panel">
+    <div class="panel-head"><h3>Questions</h3></div>
+    <div class="panel-body stack">
+      {% if a.instructions %}<div class="doc" style="max-height:none">{{ a.instructions }}</div>{% endif %}
+      {% if a.question_file %}<div><a class="attach" href="/assignments/{{ a.id }}/question-file"><span class="ext pdf">{{ (a.question_file_name or '').rsplit('.', 1)[-1][:4]|upper }}</span><span><b>{{ a.question_file_name }}</b><div class="xs muted">Question paper</div></span></a></div>{% endif %}
+    </div>
+  </section>
+
+  {% if graded %}
+  {% set r = sub.results %}
+  <section class="panel">
+    <div class="panel-head"><h3>Your result</h3><span class="small muted">Graded {{ when(sub.approved_at, 'rel') }}</span></div>
+    <div class="panel-body">
+      <div class="big-score">{{ sub.total_score|num }}<span class="of"> / {{ a.max_marks|num }}</span></div>
+      <div class="muted" style="margin-top:8px">{{ pct(sub.total_score, a.max_marks) }}%</div>
+      {% if sub.overall_feedback %}<p class="pre" style="margin-top:20px">{{ sub.overall_feedback }}</p>{% endif %}
+      <hr>
+      {% for q in r.questions %}
+        <div class="qresult"><span class="qlabel">{{ q.question }}</span><p class="fb small">{{ q.feedback }}</p><span class="score">{{ q.score|num }} <span class="of">/ {{ q.max_score|num }}</span></span></div>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif locked %}
+  <section class="panel sage">
+    {% call empty('Your work is being graded', "You'll get an email with your score and feedback as soon as results are ready.") %}
+      <div class="small muted">Submitted {{ when(sub.submitted_at, 'rel') }}{% if sub.files %} · {{ sub.files|length }} file{{ 's' if sub.files|length != 1 }}{% endif %}</div>
+    {% endcall %}
+  </section>
+  {% else %}
+  <section class="panel">
+    <div class="panel-head"><h3>{{ 'Update your submission' if sub else 'Submit your work' }}</h3></div>
+    <form method="post" action="/assignments/{{ a.id }}/submit" enctype="multipart/form-data" class="panel-body stack">
+      {% if sub %}<div class="notice success"><span><b>Submitted {{ when(sub.submitted_at, 'rel') }}.</b> {% if sub.files %}{{ sub.files|map(attribute='original_name')|join(', ') }}. {% endif %}You can replace it until grading starts.</span></div>{% endif %}
+      {% if sub and sub.status == 'failed' %}<div class="notice warn"><span>Grading couldn't finish for this submission. Your instructor will retry, or you can resubmit.</span></div>{% endif %}
+      {% if a.due_at and a.due_at < now %}<div class="notice error"><span>The due date has passed. Your submission will be marked <b>late</b>.</span></div>{% endif %}
+      <label class="dropzone" data-list="files-list"><input type="file" name="files" multiple accept="{{ accepted }}">
+        <div class="dz-title"><u>Upload your work</u> or drag files here</div>
+        <div class="dz-hint">Photos or scans of handwritten answers, PDFs or text files. You can add several.</div></label>
+      <div id="files-list" class="file-list"></div>
+      <div class="field"><label for="text_answer">Typed answer <span class="muted">(optional)</span></label>
+        <textarea id="text_answer" name="text_answer" rows="7">{{ sub.text_answer if sub and sub.text_answer else '' }}</textarea></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn lg">{{ 'Resubmit' if sub else 'Submit assignment' }}</button></div>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

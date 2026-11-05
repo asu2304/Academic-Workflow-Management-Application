@@ -1,0 +1,22 @@
+{% extends "public.html" %}
+{% from "macros.html" import icon %}
+{% block title %}Log in{% endblock %}
+{% block toasts %}{% endblock %}
+{% block body %}
+<main class="auth-page">
+  <div class="auth-card">
+    <h1>Log in</h1>
+    <p class="lead">Welcome back. Pick up where you left off.</p>
+    {% for f in flashes %}<div class="notice {{ f.kind }}" style="margin-bottom:20px">{{ f.message }}</div>{% endfor %}
+    <form method="post" action="/login" class="stack">
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field"><label for="email">Email</label><input id="email" type="email" name="email" required autofocus autocomplete="email" placeholder="you@school.edu"></div>
+      <div class="field"><label for="pw">Password</label>
+        <div class="pw"><input id="pw" type="password" name="password" required autocomplete="current-password">
+          <button type="button" class="btn ghost sm icon-only" data-reveal="pw" aria-label="Show password">{{ icon('eye', 'sm') }}</button></div></div>
+      <button class="btn lg block">Log in</button>
+    </form>
+    <p class="alt">New to GradeMate? <a href="/signup">Create an account</a></p>
+  </div>
+</main>
+{% endblock %}
